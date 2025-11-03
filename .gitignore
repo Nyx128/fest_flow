@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pycache
+*.pkl
+*.rypc
+
+.venv/
+venv/
+env/
+ENV/
+*.env
+
+alembic/versions/__pycache__/
