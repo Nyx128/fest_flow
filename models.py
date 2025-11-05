@@ -3,13 +3,13 @@ from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 
-class fest(Base):
+class Fest(Base):
     __tablename__ = 'fests'
     fest_id = Column(Integer, primary_key=True)
     name = Column(String(128), nullable=False)
     year = Column(Integer, nullable= False)
 
-class event(Base):
+class Event(Base):
     __tablename__ = 'events'
     event_id = Column(Integer, primary_key= True)
     name = Column(String, nullable= False)
@@ -28,7 +28,7 @@ class College(Base):
     city = Column(String(100))
     state = Column(String(100))
 
-class club(Base):
+class Club(Base):
     __tablename__ = "clubs"
     club_id = Column(Integer, primary_key=True)
     college_id = Column(Integer, ForeignKey("colleges.college_id"), nullable=False)
@@ -37,7 +37,7 @@ class club(Base):
     poc = Column(String(100))
     poc_position = Column(String(100))
 
-class participant(Base):
+class Participant(Base):
     __tablename__ = "participants"
     participant_id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
@@ -47,13 +47,13 @@ class participant(Base):
     college_id = Column(Integer, ForeignKey("colleges.college_id"))
     club_id = Column(Integer, ForeignKey("clubs.club_id"))
 
-class team(Base):
+class Team(Base):
     __tablename__ = "teams"
     team_id = Column(Integer, primary_key=True)
     event_id = Column(Integer, ForeignKey("events.event_id"), nullable=False)
     team_name = Column(String(100), nullable=False)
 
-class teamMember(Base):
+class TeamMember(Base):
     __tablename__ = "team_members"
     team_id = Column(Integer, ForeignKey("teams.team_id"), primary_key=True)
     participant_id = Column(Integer, ForeignKey("participants.participant_id"), primary_key=True)
