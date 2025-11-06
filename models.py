@@ -58,17 +58,10 @@ class TeamMember(Base):
     team_id = Column(Integer, ForeignKey("teams.team_id"), primary_key=True)
     participant_id = Column(Integer, ForeignKey("participants.participant_id"), primary_key=True)
 
-class Organiser(Base):
-    __tablename__ = "organisers"
-    organiser_id = Column(Integer, primary_key=True)
-    name = Column(String(100), nullable=False)
-    phone = Column(String(15))
-    email = Column(String(100))
-    role = Column(Enum("Admin", "Coordinator", "Event Head", "Volunteer", name="role_enum"), nullable=False)
     
 class OrganiserEvent(Base):
     __tablename__ = "organiser_events"
-    organiser_id = Column(Integer, ForeignKey("organisers.organiser_id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), primary_key=True)
     event_id = Column(Integer, ForeignKey("events.event_id"), primary_key=True)
 
 class User(Base):
@@ -76,7 +69,11 @@ class User(Base):
     user_id = Column(Integer, primary_key=True)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
-    organiser_id = Column(Integer, ForeignKey("organisers.organiser_id"), nullable=False)
+    name = Column(String(100), nullable=False)
+    phone = Column(String(15))
+    email = Column(String(100))
+    role = Column(Enum("Admin", "Coordinator", "Event Head", "Volunteer", name="role_enum"),nullable=False)
+    
 
 class MerchDistribution(Base):
     __tablename__ = "merch_distribution"
@@ -108,4 +105,3 @@ class RoomReserved(Base):
     __tablename__ = "room_reserved"
     participant_id = Column(Integer, ForeignKey("participants.participant_id"), primary_key=True)
     room_id = Column(Integer, ForeignKey("rooms.room_id"), primary_key=True)
-
