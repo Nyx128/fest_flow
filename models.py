@@ -83,14 +83,14 @@ class User(Base):
 
 class MerchDistribution(Base):
     __tablename__ = "merch_distribution"
-    participant_id = Column(Integer, ForeignKey("participants.participant_id"), primary_key=True)
+    participant_id = Column(Integer, ForeignKey("participants.participant_id", ondelete="CASCADE"), primary_key=True)
     distributed = Column(Boolean, default=False)
     time_of_distribution = Column(TIMESTAMP)
 
 class Certificate(Base):
     __tablename__ = "certificates"
     certificate_id = Column(Integer, primary_key=True)
-    participant_id = Column(Integer, ForeignKey("participants.participant_id"), nullable=False)
+    participant_id = Column(Integer, ForeignKey("participants.participant_id", ondelete="CASCADE"), nullable=False)
     event_id = Column(Integer, ForeignKey("events.event_id"), nullable=False)
     certificate_type = Column(String(50))
 
@@ -109,5 +109,5 @@ class RoomOccupancy(Base):
 
 class RoomReserved(Base):
     __tablename__ = "room_reserved"
-    participant_id = Column(Integer, ForeignKey("participants.participant_id"), primary_key=True)
+    participant_id = Column(Integer, ForeignKey("participants.participant_id", ondelete="CASCADE"), primary_key=True)
     room_id = Column(Integer, ForeignKey("rooms.room_id"), nullable = False)
