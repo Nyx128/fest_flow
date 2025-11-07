@@ -35,6 +35,7 @@ class Club(Base):
     club_name = Column(String(100), nullable=False)
     club_type = Column(String(50))
     poc = Column(String(100))
+    poc_contact = Column(String(10), nullable = False)
     poc_position = Column(String(100))
 
 class Participant(Base):
@@ -104,4 +105,4 @@ class RoomOccupancy(Base):
 class RoomReserved(Base):
     __tablename__ = "room_reserved"
     participant_id = Column(Integer, ForeignKey("participants.participant_id"), primary_key=True)
-    room_id = Column(Integer, ForeignKey("rooms.room_id"), primary_key=True)
+    room_id = Column(Integer, ForeignKey("rooms.room_id"), nullable = False)
