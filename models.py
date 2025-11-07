@@ -51,13 +51,18 @@ class Participant(Base):
 class Team(Base):
     __tablename__ = "teams"
     team_id = Column(Integer, primary_key=True)
-    event_id = Column(Integer, ForeignKey("events.event_id"), nullable=False)
+    
     team_name = Column(String(100), nullable=False)
 
 class TeamMember(Base):
     __tablename__ = "team_members"
     team_id = Column(Integer, ForeignKey("teams.team_id"), primary_key=True)
     participant_id = Column(Integer, ForeignKey("participants.participant_id"), primary_key=True)
+
+class TeamEvent(Base):
+    __tablename__ = "team_events"
+    team_id = Column(Integer, ForeignKey("teams.team_id"), nullable = False, primary_key=True)
+    event_id = Column(Integer, ForeignKey("events.event_id"), nullable=False, primary_key = True)
 
     
 class OrganiserEvent(Base):
