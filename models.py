@@ -51,7 +51,6 @@ class Participant(Base):
 class Team(Base):
     __tablename__ = "teams"
     team_id = Column(Integer, primary_key=True)
-    
     team_name = Column(String(100), nullable=False)
 
 class TeamMember(Base):
