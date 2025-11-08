@@ -239,3 +239,4 @@ def create_room_endpoint(
     
     # If no duplicate, create the new room
     return crud.create_room(db=db, room=room)
+

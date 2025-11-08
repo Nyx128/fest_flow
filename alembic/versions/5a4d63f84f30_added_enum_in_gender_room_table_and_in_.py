@@ -19,9 +19,7 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-# --- DEFINE YOUR ENUMS HERE ---
-# (I'm guessing your gender values, please correct them if they are different)
-gender_enum = postgresql.ENUM('Male', 'Female', 'Other', name='gender_enum')
+gender_enum = postgresql.ENUM('MALE', 'FEMALE', name='gender_enum')
 merch_size_enum = postgresql.ENUM('S', 'M', 'L', 'XL', 'XXL', name='merch_size_enum')
 
 

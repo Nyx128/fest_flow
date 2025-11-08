@@ -215,7 +215,12 @@ def create_room(db: Session, room: schemas.RoomCreate):
     # The 'gender' field from schemas.RoomCreate (a RoomGender enum)
     # will be automatically converted to its string value ("FEMALE" or "MALE"),
     # which the SQLAlchemy 'models.Room' enum column accepts.
-    db_room = models.Room(**room.model_dump())
+    db_room = models.Room(
+        building_name = room.building_name,
+        room_no = room.room_no,
+        gender = room.gender,
+        max_capacity = room.max_capacity
+    )
     
     db.add(db_room)
     db.commit()
