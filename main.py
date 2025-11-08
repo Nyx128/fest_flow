@@ -213,3 +213,29 @@ def create_club_endpoint(
             detail="Club with this name already exists"
         )
     return crud.create_club(db=db, club=club)
+
+#-- rooms endpoint--
+@app.post("/rooms/", response_model=schemas.Room, status_code=status.HTTP_201_CREATED)
+def create_room_endpoint(
+    room: schemas.RoomCreate, 
+    db: Session = Depends(get_db)
+):
+    """
+    API endpoint to create a new room.
+    
+    Checks for duplicates based on building_name and room_no.
+    """
+    # Check if a room with this building name and room number already exists
+    db_room = crud.get_room_by_details(
+        db, 
+        building_name=room.building_name, 
+        room_no=room.room_no
+    )
+    if db_room:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Room with this building name and room number already exists"
+        )
+    
+    # If no duplicate, create the new room
+    return crud.create_room(db=db, room=room)

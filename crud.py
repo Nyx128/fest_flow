@@ -196,3 +196,28 @@ def create_club(db: Session, club: schemas.ClubCreate):
     db.commit()
     db.refresh(db_club)
     return db_club
+
+#-- room crud--
+def get_room_by_details(db: Session, building_name: str, room_no: str):
+    """
+    Fetches a room by its building name and room number to check for duplicates.
+    """
+    return db.query(models.Room).filter(
+        models.Room.building_name == building_name,
+        models.Room.room_no == room_no
+    ).first()
+
+def create_room(db: Session, room: schemas.RoomCreate):
+    """
+    Creates a new room in the DB.
+    """
+    # Create the SQLAlchemy model instance directly from the Pydantic schema
+    # The 'gender' field from schemas.RoomCreate (a RoomGender enum)
+    # will be automatically converted to its string value ("FEMALE" or "MALE"),
+    # which the SQLAlchemy 'models.Room' enum column accepts.
+    db_room = models.Room(**room.model_dump())
+    
+    db.add(db_room)
+    db.commit()
+    db.refresh(db_room)
+    return db_room

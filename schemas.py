@@ -159,3 +159,28 @@ class Club(ClubBase):
 
     class Config:
         from_attributes = True
+
+
+#-- room schemas---
+class RoomGender(str, Enum):
+    """Enumeration for Room Gender, matching the DB."""
+    FEMALE = "FEMALE"
+    MALE = "MALE"
+
+class RoomBase(BaseModel):
+    """Base schema for room, defining all common fields."""
+    building_name: str
+    room_no: str
+    gender: RoomGender
+    max_capacity: int
+
+class RoomCreate(RoomBase):
+    """Schema used for creating a new room. Inherits all fields from Base."""
+    pass
+
+class Room(RoomBase):
+    """Schema used for reading room data. Includes the room_id."""
+    room_id: int
+
+    class Config:
+        from_attributes = True
