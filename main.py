@@ -240,3 +240,59 @@ def create_room_endpoint(
     # If no duplicate, create the new room
     return crud.create_room(db=db, room=room)
 
+# --- Event Endpoints (Create and Read by ID/Name) ---
+
+@app.post("/events/", response_model=schemas.Event, status_code=status.HTTP_201_CREATED)
+def create_event_endpoint(
+    event: schemas.EventCreate, 
+    db: Session = Depends(get_db)
+):
+    """
+    API endpoint to create a new event.
+    """
+    # Check if event with that name already exists
+    db_event = crud.get_event_by_name(db, name=event.name)
+    if db_event:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Event with name '{event.name}' already exists"
+        )
+    
+    # Check if the fest_id exists
+    db_fest = crud.get_fest(db, fest_id=event.fest_id)
+    if not db_fest:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Fest with fest_id {event.fest_id} not found"
+        )
+        
+    return crud.create_event(db=db, event=event)
+
+
+#-- event endpoints--
+@app.get("/events/search/", response_model=schemas.Event)
+def read_event_by_name_endpoint(
+    name: str, 
+    db: Session = Depends(get_db)
+):
+    """
+    API endpoint to get a single event by its name.
+    Usage: /events/search?name=EventName
+    """
+    # We re-use the CRUD function we already built for validation
+    db_event = crud.get_event_by_name(db, name=name)
+    if db_event is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+    return db_event
+
+
+@app.get("/events/{event_id}", response_model=schemas.Event)
+def read_event_endpoint(event_id: int, db: Session = Depends(get_db)):
+    """
+    API endpoint to get a single event by its ID.
+    """
+    db_event = crud.get_event(db, event_id=event_id)
+    if db_event is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
+    return db_event
+
