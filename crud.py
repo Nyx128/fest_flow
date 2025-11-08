@@ -99,6 +99,10 @@ def add_team_to_event(db: Session, team_data: schemas.TeamCreateRequest):
                 participant_id=db_participant.participant_id
             )
             db.add(db_team_member)
+
+            #try and give the participant a room
+            if assign_room_to_participant(db, db_participant.participant_id) == None:
+                raise ValueError("team cannot be created as no suitable room space is available")
             
             created_participants.append(db_participant)
 
@@ -226,3 +230,98 @@ def create_room(db: Session, room: schemas.RoomCreate):
     db.commit()
     db.refresh(db_room)
     return db_room
+
+def add_participant_to_room_reserved(db: Session, participant_id: int, room_id: int):
+    """
+    Creates a new entry in the RoomReserved table.
+    DOES NOT COMMIT. This is intended to be used within a transaction.
+    """
+    db_reservation = models.RoomReserved(
+        participant_id=participant_id,
+        room_id=room_id
+    )
+    db.add(db_reservation)
+    return db_reservation
+
+def increment_room_occupancy(db: Session, room_id: int):
+    """
+    Finds the occupancy record for a room and increments its count.
+    DOES NOT COMMIT. This is intended to be used within a transaction.
+    """
+    # Fetch the occupancy record
+    db_occupancy = db.query(models.RoomOccupancy).filter(
+        models.RoomOccupancy.room_id == room_id
+    ).first()
+    
+    if db_occupancy:
+        # Increment the count
+        db_occupancy.current_occupancy += 1
+        return db_occupancy
+    else:
+        # This should not happen if create_room is used correctly
+        raise Exception(f"No RoomOccupancy record found for room_id {room_id}")
+
+def assign_room_to_participant(db: Session, participant_id: int):
+    """
+    Finds the first available room for a participant based on their gender
+    and available capacity, then assigns them to it.
+    
+    This function manages its own transaction (commit/rollback).
+    
+    Returns:
+        - The new 'models.RoomReserved' object if successful.
+        - The *existing* 'models.RoomReserved' object if participant is already assigned.
+        - None if no suitable room is available.
+    """
+    
+    # 1. Get participant details (especially gender)
+    participant = db.query(models.Participant).filter(
+        models.Participant.participant_id == participant_id
+    ).first()
+    
+    if not participant:
+        raise ValueError(f"Participant with id {participant_id} not found.")
+
+    # 2. Check if participant is already assigned a room
+    existing_reservation = db.query(models.RoomReserved).filter(
+        models.RoomReserved.participant_id == participant_id
+    ).first()
+    
+    if existing_reservation:
+        return existing_reservation # Already assigned, do nothing
+
+    participant_gender = participant.gender # Assumes participant model has 'gender'
+
+    # 3. Find the first available room
+    #    We join Room (for max_capacity and gender)
+    #    with RoomOccupancy (for current_occupancy)
+    available_room = db.query(models.Room) \
+        .join(models.RoomOccupancy, models.Room.room_id == models.RoomOccupancy.room_id) \
+        .filter(
+            models.Room.gender == participant_gender,
+            models.RoomOccupancy.current_occupancy < models.Room.max_capacity
+        ) \
+        .order_by(models.RoomOccupancy.current_occupancy.asc()) \
+        .first() # Get the first room that's not full
+    
+    if not available_room:
+        return None
+
+    try:
+        # Add to RoomReserved (adds to session)
+        db_reservation = add_participant_to_room_reserved(
+            db=db,
+            participant_id=participant_id,
+            room_id=available_room.room_id
+        )
+        
+        increment_room_occupancy(db=db, room_id=available_room.room_id)
+        
+        db.commit()
+        
+        db.refresh(db_reservation)
+        return db_reservation
+        
+    except Exception as e:
+        db.rollback() # Rollback on failure
+        raise e # Re-raise exception for the API layer to handle
