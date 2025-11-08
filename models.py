@@ -44,7 +44,7 @@ class Participant(Base):
     name = Column(String(100), nullable=False)
     phone = Column(String(15))
     email = Column(String(100))
-    merch_size = Column(String(5))
+    merch_size = Column(Enum("S", "M", "L", "XL", "XXL", name="merch_size_enum"), nullable=False)
     college_id = Column(Integer, ForeignKey("colleges.college_id"))
     club_id = Column(Integer, ForeignKey("clubs.club_id"))
 
@@ -98,7 +98,7 @@ class Room(Base):
     room_id = Column(Integer, primary_key=True)
     building_name = Column(String(100))
     room_no = Column(String(20))
-    gender = Column(String(10))
+    gender = Column(Enum("FEMALE", "MALE", name="GENDER_enum"), nullable=False)
     max_capacity = Column(Integer)
 
 class RoomOccupancy(Base):
