@@ -213,3 +213,4 @@ def create_club_endpoint(
             detail="Club with this name already exists"
         )
     return crud.create_club(db=db, club=club)
+

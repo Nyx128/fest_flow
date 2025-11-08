@@ -98,7 +98,7 @@ class Room(Base):
     room_id = Column(Integer, primary_key=True)
     building_name = Column(String(100))
     room_no = Column(String(20))
-    gender = Column(Enum("FEMALE", "MALE", name="GENDER_enum"), nullable=False)
+    gender = Column(Enum("FEMALE", "MALE", name="gender_enum"), nullable=False)
     max_capacity = Column(Integer)
 
 class RoomOccupancy(Base):
