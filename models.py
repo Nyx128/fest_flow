@@ -47,6 +47,7 @@ class Participant(Base):
     merch_size = Column(Enum("S", "M", "L", "XL", "XXL", name="merch_size_enum"), nullable=False)
     college_id = Column(Integer, ForeignKey("colleges.college_id"))
     club_id = Column(Integer, ForeignKey("clubs.club_id"))
+    gender = Column(Enum("FEMALE", "MALE", name="gender_enum"), nullable=False)
 
 class Team(Base):
     __tablename__ = "teams"

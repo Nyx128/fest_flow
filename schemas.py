@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 from enum import Enum
 import re
 from typing import List
+from datetime import date, time
 
 class FestBase(BaseModel):
     name: str
@@ -60,7 +61,10 @@ class UserLogin(BaseModel):
     password: str
 
 
-# --- Participant, Team, and Event Schemas ---
+# --- Participant, Team, and Schemas ---
+class Gender(str, Enum):
+    FEMALE = "FEMALE"
+    MALE = "MALE"
 
 class ParticipantBase(BaseModel):
     name: str
@@ -69,6 +73,7 @@ class ParticipantBase(BaseModel):
     merch_size: str
     college_id: int 
     club_id: int | None = None
+    gender: Gender
 
 class ParticipantCreate(ParticipantBase):
     pass
@@ -162,16 +167,12 @@ class Club(ClubBase):
 
 
 #-- room schemas---
-class RoomGender(str, Enum):
-    """Enumeration for Room Gender, matching the DB."""
-    FEMALE = "FEMALE"
-    MALE = "MALE"
 
 class RoomBase(BaseModel):
     """Base schema for room, defining all common fields."""
     building_name: str
     room_no: str
-    gender: RoomGender
+    gender: Gender
     max_capacity: int
 
 class RoomCreate(RoomBase):
@@ -184,3 +185,30 @@ class Room(RoomBase):
 
     class Config:
         from_attributes = True
+
+# --- Event schema ---
+class CategoryEnum(str, Enum):
+    """Enumeration for event category, matching the DB."""
+    technical = "technical"
+    cultural = "cultural"
+    managerial = "managerial"
+
+class EventBase(BaseModel):
+    name: str
+    fest_id: int
+    category: CategoryEnum  # Use the enum here
+    venue: str | None = None
+    date: date
+    time: time
+    max_team_size: int
+
+class EventCreate(EventBase):
+    """This schema is used when *creating* a new event"""
+    pass
+
+class Event(EventBase):
+    """This schema is used when *reading* (returning) an event"""
+    event_id: int
+
+    class Config:
+        from_attributes = True 

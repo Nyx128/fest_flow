@@ -54,11 +54,6 @@ def check_user_credentials(db: Session, user_login: schemas.UserLogin):
 
 
 # --- Team and Participant CRUD (New) ---
-
-def get_event(db: Session, event_id: int):
-    """Helper function to get an event by its ID."""
-    return db.query(models.Event).filter(models.Event.event_id == event_id).first()
-
 def add_team_to_event(db: Session, team_data: schemas.TeamCreateRequest):
     """
     Creates a team, its participants, and links them all in one transaction.
@@ -159,6 +154,9 @@ def delete_team_by_id(db: Session, team_id: int):
         # 5. Delete the team itself (as requested)
         db.delete(db_team)
 
+        for id in participant_ids:
+            remove_reservation(db, id)
+
         # 6. Delete the participants who were on this team
         if participant_ids:
             # Delete participants based on the collected IDs
@@ -213,23 +211,34 @@ def get_room_by_details(db: Session, building_name: str, room_no: str):
 
 def create_room(db: Session, room: schemas.RoomCreate):
     """
-    Creates a new room in the DB.
+    Creates a new room in the DB AND initializes its occupancy record.
+    This is now a single transaction.
     """
-    # Create the SQLAlchemy model instance directly from the Pydantic schema
-    # The 'gender' field from schemas.RoomCreate (a RoomGender enum)
-    # will be automatically converted to its string value ("FEMALE" or "MALE"),
-    # which the SQLAlchemy 'models.Room' enum column accepts.
-    db_room = models.Room(
-        building_name = room.building_name,
-        room_no = room.room_no,
-        gender = room.gender,
-        max_capacity = room.max_capacity
-    )
-    
-    db.add(db_room)
-    db.commit()
-    db.refresh(db_room)
-    return db_room
+    try:
+        # 1. Create the room
+        db_room = models.Room(**room.model_dump())
+        db.add(db_room)
+        
+        # 2. Flush the session to get the new db_room.room_id
+        #    without committing the transaction yet.
+        db.flush()
+
+        # 3. Create the corresponding occupancy record
+        db_occupancy = models.RoomOccupancy(
+            room_id=db_room.room_id,
+            current_occupancy=0  # Initialize occupancy at 0
+        )
+        db.add(db_occupancy)
+        
+        # 4. Commit both operations as a single transaction
+        db.commit()
+        
+        # 5. Refresh the room object
+        db.refresh(db_room)
+        return db_room
+    except Exception as e:
+        db.rollback() # Rollback all changes if any step fails
+        raise e # Re-raise the exception
 
 def add_participant_to_room_reserved(db: Session, participant_id: int, room_id: int):
     """
@@ -260,6 +269,71 @@ def increment_room_occupancy(db: Session, room_id: int):
     else:
         # This should not happen if create_room is used correctly
         raise Exception(f"No RoomOccupancy record found for room_id {room_id}")
+    
+def decrement_room_occupancy(db: Session, room_id: int, count: int = 1):
+    """
+    Finds the occupancy record for a room and decrements its count.
+    Ensures occupancy does not go below zero.
+    DOES NOT COMMIT. This is intended to be used within a transaction.
+    """
+    # Fetch the occupancy record
+    db_occupancy = db.query(models.RoomOccupancy).filter(
+        models.RoomOccupancy.room_id == room_id
+    ).first()
+    
+    if db_occupancy:
+        # Decrement the count, ensuring it stays at 0 or above
+        db_occupancy.current_occupancy = max(0, db_occupancy.current_occupancy - count)
+        return db_occupancy
+    else:
+        # This case is problematic (data inconsistency), but we shouldn't
+        # block the team deletion. We'll just return None.
+        return None
+
+def _remove_reservation_no_commit(db: Session, participant_id: int):
+    """
+    Internal helper: Finds and removes a participant's room reservation.
+    Decrements room occupancy.
+    DOES NOT COMMIT.
+    """
+    # 1. Find the participant's reservation
+    reservation = db.query(models.RoomReserved).filter(
+        models.RoomReserved.participant_id == participant_id
+    ).first()
+    
+    if not reservation:
+        # Participant has no reservation, nothing to do
+        return None
+        
+    # 2. Get the room_id from the reservation
+    room_id = reservation.room_id
+    
+    # 3. Delete the reservation
+    db.delete(reservation)
+    
+    # 4. Decrement the room's occupancy (this is already a no-commit fn)
+    decrement_room_occupancy(db, room_id, count=1)
+    
+    return reservation
+
+def remove_reservation(db: Session, participant_id: int):
+    """
+    Removes a participant's room reservation and decrements occupancy.
+    This function manages its own transaction (commit/rollback).
+    """
+    try:
+        deleted_res = _remove_reservation_no_commit(db, participant_id)
+        
+        if deleted_res:
+            db.commit()
+            return deleted_res
+        else:
+            # No reservation found, no changes to commit or rollback
+            return None
+            
+    except Exception as e:
+        db.rollback()
+        raise e
 
 def assign_room_to_participant(db: Session, participant_id: int):
     """
@@ -325,3 +399,22 @@ def assign_room_to_participant(db: Session, participant_id: int):
     except Exception as e:
         db.rollback() # Rollback on failure
         raise e # Re-raise exception for the API layer to handle
+# -- Event crud --
+
+def get_event(db: Session, event_id: int):
+    """Helper function to get an event by its ID."""
+    return db.query(models.Event).filter(models.Event.event_id == event_id).first()
+
+def get_event_by_name(db: Session, name: str):
+    """Get a single event by its name."""
+    return db.query(models.Event).filter(models.Event.name == name).first()
+
+def create_event(db: Session, event: schemas.EventCreate):
+    """Create a new event."""
+    # Use .model_dump() instead of .dict()
+    db_event = models.Event(**event.model_dump()) 
+    db.add(db_event)
+    db.commit()
+    db.refresh(db_event)
+    return db_event
+
