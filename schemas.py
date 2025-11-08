@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 from enum import Enum
 import re
 from typing import List
+from datetime import date, time
 
 class FestBase(BaseModel):
     name: str
@@ -60,7 +61,7 @@ class UserLogin(BaseModel):
     password: str
 
 
-# --- Participant, Team, and Event Schemas ---
+# --- Participant, Team, and Schemas ---
 
 class ParticipantBase(BaseModel):
     name: str
@@ -184,3 +185,32 @@ class Room(RoomBase):
 
     class Config:
         from_attributes = True
+
+# --- Event schema ---
+class CategoryEnum(str, Enum):
+    """Enumeration for event category, matching the DB."""
+    technical = "technical"
+    cultural = "cultural"
+    managerial = "managerial"
+
+class EventBase(BaseModel):
+    name: str
+    fest_id: int
+    category: CategoryEnum  # Use the enum here
+    venue: str | None = None
+    date: date
+    time: time
+    max_team_size: int
+
+class EventCreate(EventBase):
+    """This schema is used when *creating* a new event"""
+    pass
+
+class Event(EventBase):
+    """This schema is used when *reading* (returning) an event"""
+    event_id: int
+
+
+
+    class Config:
+        from_attributes = True 

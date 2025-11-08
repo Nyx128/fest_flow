@@ -226,3 +226,22 @@ def create_room(db: Session, room: schemas.RoomCreate):
     db.commit()
     db.refresh(db_room)
     return db_room
+
+# -- Event crud --
+
+def get_event(db: Session, event_id: int):
+    """Helper function to get an event by its ID."""
+    return db.query(models.Event).filter(models.Event.event_id == event_id).first()
+
+def get_event_by_name(db: Session, name: str):
+    """Get a single event by its name."""
+    return db.query(models.Event).filter(models.Event.name == name).first()
+
+def create_event(db: Session, event: schemas.EventCreate):
+    """Create a new event."""
+    # Use .model_dump() instead of .dict()
+    db_event = models.Event(**event.model_dump()) 
+    db.add(db_event)
+    db.commit()
+    db.refresh(db_event)
+    return db_event
