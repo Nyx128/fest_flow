@@ -6,3 +6,4 @@ python-dotenv
 passlib
 bcrypt==4.3.0
 pydantic[email]
+requests

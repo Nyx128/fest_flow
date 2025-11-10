@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware  # Import this
 from sqlalchemy.orm import Session
+from typing import List
 
 # Import everything from your other files
 import crud, models, schemas
@@ -13,8 +14,10 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:8000",
+    "http://127.0.0.1:5500",
     "http://127.0.0.1:8000", # Add the origin of your frontend (VSC Live Server port)
     "null" # Often needed for 'file://' origins
+
 ]
 
 app.add_middleware(
@@ -85,7 +88,6 @@ def read_fest(fest_id: int, db: Session = Depends(get_db)):
     if db_item is None:
         raise HTTPException(status_code=404, detail="Fest not found")
     return db_item
-
 
 # --- Team Endpoints ---
 @app.post("/teams/add_to_event/", response_model=schemas.FullTeamResponse, status_code=status.HTTP_201_CREATED)
@@ -180,7 +182,6 @@ def delete_team_endpoint(team_id: int, db: Session = Depends(get_db)):
             detail=f"An internal error occurred: {str(e)}"
         )
 
-
 #--colleges and club endpoints
 @app.post("/colleges/", response_model=schemas.College, status_code=status.HTTP_201_CREATED)
 def create_college_endpoint(
@@ -240,8 +241,8 @@ def create_room_endpoint(
     # If no duplicate, create the new room
     return crud.create_room(db=db, room=room)
 
-# --- Event Endpoints (Create and Read by ID/Name) ---
 
+#-- event endpoints--
 @app.post("/events/", response_model=schemas.Event, status_code=status.HTTP_201_CREATED)
 def create_event_endpoint(
     event: schemas.EventCreate, 
@@ -268,8 +269,6 @@ def create_event_endpoint(
         
     return crud.create_event(db=db, event=event)
 
-
-#-- event endpoints--
 @app.get("/events/search/", response_model=schemas.Event)
 def read_event_by_name_endpoint(
     name: str, 
@@ -285,7 +284,6 @@ def read_event_by_name_endpoint(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
     return db_event
 
-
 @app.get("/events/{event_id}", response_model=schemas.Event)
 def read_event_endpoint(event_id: int, db: Session = Depends(get_db)):
     """
@@ -296,3 +294,33 @@ def read_event_endpoint(event_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Event not found")
     return db_event
 
+#--filter endpoints--
+@app.get("/participants/query/", response_model=List[schemas.Participant])
+def query_participants(
+    college_name: str | None = None,
+    club_id: int | None = None,
+    gender: schemas.Gender | None = None,
+    state: str | None = None,
+    city: str | None = None,
+    event_id: int | None = None,
+    db: Session = Depends(get_db)
+):
+    """
+    API endpoint to get participants based on dynamic filters.
+    Usage:
+    /participants/query/
+    /participants/query/?college_name=SomeCollege
+    /participants/query/?event_id=10&gender=Male
+    /participants/query/?club_id=5&state=SomeState
+    """
+    participants = crud.get_participants_by_filters(
+        db, 
+        college_name=college_name,
+        club_id=club_id, 
+        gender=gender, 
+        state=state, 
+        city=city,
+        event_id=event_id
+    )
+    return participants\
+    

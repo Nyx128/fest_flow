@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 import models, schemas, security
+from typing import List
 
 #fest crud
 def get_fest(db: Session, fest_id: int):
@@ -13,7 +14,6 @@ def create_fest(db: Session, fest: schemas.FestCreate):
     db.commit()
     db.refresh(db_item)
     return db_item
-
 
 #user crud
 def get_user_by_username(db: Session, username: str):
@@ -51,7 +51,6 @@ def check_user_credentials(db: Session, user_login: schemas.UserLogin):
         return None
         
     return db_user
-
 
 # --- Team and Participant CRUD (New) ---
 def add_team_to_event(db: Session, team_data: schemas.TeamCreateRequest):
@@ -418,3 +417,102 @@ def create_event(db: Session, event: schemas.EventCreate):
     db.refresh(db_event)
     return db_event
 
+#--filter crud--
+def get_participants_by_filters(
+    db: Session, 
+    college_name: str | None,
+    club_id: int | None,
+    gender: schemas.Gender | None,
+    state: str | None,
+    city: str | None,
+    event_id: int | None
+) -> List[models.Participant]:
+    """
+    Dynamically queries the Participant table based on provided filters,
+    joining with College, Club, and Event tables as needed.
+    """
+    
+    # Start with a query for all participants
+    query = db.query(models.Participant)
+    
+    # --- Event Filter (requires multiple joins) ---
+    if event_id is not None:
+        # Join Participant -> TeamMember -> Team -> TeamEvent
+        query = query.join(
+            models.TeamMember, 
+            models.Participant.participant_id == models.TeamMember.participant_id
+        ).join(
+            models.Team, 
+            models.TeamMember.team_id == models.Team.team_id
+        ).join(
+            models.TeamEvent, 
+            models.Team.team_id == models.TeamEvent.team_id
+        )
+        # Filter on the final joined table (TeamEvent)
+        query = query.filter(models.TeamEvent.event_id == event_id)
+        
+    # --- College/State/City Filters (requires join) ---
+    if college_name or state or city:
+        # Join Participant -> College
+        query = query.join(
+            models.College, 
+            models.Participant.college_id == models.College.college_id
+        )
+        
+        if college_name:
+            # Use .ilike() for case-insensitive partial matching
+            query = query.filter(models.College.name.ilike(f"%{college_name}%"))
+            
+        if state:
+            query = query.filter(models.College.state.ilike(f"%{state}%"))
+            
+        if city:
+            query = query.filter(models.College.city.ilike(f"%{city}%"))
+
+    # --- Club Filter (requires join) ---
+    if club_id is not None:
+        # Join Participant -> Club
+        # We add isouter=True to make it a LEFT JOIN, in case a 
+        # participant doesn't have a club_id set.
+        query = query.join(
+            models.Club, 
+            models.Participant.club_id == models.Club.club_id,
+            isouter=True 
+        )
+        query = query.filter(models.Club.club_id == club_id)
+        
+    # --- Gender Filter (direct on Participant table) ---
+    if gender:
+        query = query.filter(models.Participant.gender == gender)
+        
+    # Prevent duplicate participants if multiple joins match
+    query = query.distinct()
+        
+    # Execute the final query and return all results
+    return query.all()
+
+def get_colleges_by_filters(db: Session, city: str | None, state: str | None) -> List[models.College]:
+    """
+    Dynamically queries the College table based on city and/or state.
+    """
+    query = db.query(models.College)
+    
+    if city:
+        query = query.filter(models.College.city.ilike(f"%{city}%"))
+        
+    if state:
+        query = query.filter(models.College.state.ilike(f"%{state}%"))
+        
+    return query.all()
+
+def get_clubs_by_filters(db: Session, club_type: str | None) -> List[models.Club]:
+    """
+    Dynamically queries the Club table based on club type.
+    """
+    query = db.query(models.Club)
+    
+    if club_type:
+        # Use .ilike() for case-insensitive partial matching
+        query = query.filter(models.Club.club_type.ilike(f"%{club_type}%"))
+        
+    return query.all()
