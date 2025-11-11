@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware  # Import this
 from sqlalchemy.orm import Session
 from typing import List
+from datetime import date, time
 
 # Import everything from your other files
 import crud, models, schemas
@@ -324,3 +325,81 @@ def query_participants(
     )
     return participants\
     
+@app.get("/events/query/", response_model=List[schemas.Event])
+def query_events(
+    category: schemas.CategoryEnum | None = None,
+    venue: str | None = None,
+    date: date | None = None, # Make sure `from datetime import date` is at the top
+    db: Session = Depends(get_db)
+):
+    """
+    API endpoint to get events based on dynamic filters.
+    Usage:
+    /events/query/
+    /events/query/?category=technical
+    /events/query/?venue=Auditorium
+    """
+    events = crud.get_events_by_filters(
+        db, 
+        category=category,
+        venue=venue,
+        date=date
+    )
+    return events
+
+@app.get("/colleges/query/", response_model=List[schemas.College])
+def query_colleges(
+    city: str | None = None,
+    state: str | None = None,
+    db: Session = Depends(get_db)
+):
+    """
+    API endpoint to get colleges based on city and/or state.
+    (You already wrote the CRUD function for this!)
+    """
+    colleges = crud.get_colleges_by_filters(db, city=city, state=state)
+    return colleges
+
+
+@app.get("/clubs/query/", response_model=List[schemas.Club])
+def query_clubs(
+    club_type: str | None = None,
+    db: Session = Depends(get_db)
+):
+    """
+    API endpoint to get clubs based on club type.
+    (You already wrote the CRUD function for this!)
+    """
+    clubs = crud.get_clubs_by_filters(db, club_type=club_type)
+    return clubs
+
+# --- Fetch all rooms with occupancy ---
+@app.get("/rooms/occupancy/", status_code=status.HTTP_200_OK)
+def get_rooms_with_occupancy(db: Session = Depends(get_db)):
+    """
+    Fetch all rooms with their current occupancy count.
+    """
+    rooms = crud.get_all_rooms_with_occupancy(db)
+    return [
+        {
+            "room_id": room.Room.room_id,
+            "building_name": room.Room.building_name,
+            "room_no": room.Room.room_no,
+            "gender": room.Room.gender,
+            "max_capacity": room.Room.max_capacity,
+            "current_occupancy": room.current_occupancy
+        }
+        for room in rooms
+    ]
+
+
+# --- Fetch participants by room ---
+@app.get("/rooms/{room_id}/participants/", response_model=List[schemas.Participant])
+def get_participants_in_room(room_id: int, db: Session = Depends(get_db)):
+    """
+    Returns all participants assigned to a specific room.
+    """
+    participants = crud.get_participants_by_room(db, room_id=room_id)
+    if not participants:
+        raise HTTPException(status_code=404, detail="No participants found in this room")
+    return participants

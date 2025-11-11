@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 import models, schemas, security
 from typing import List
+from datetime import date
 
 #fest crud
 def get_fest(db: Session, fest_id: int):
@@ -516,3 +517,52 @@ def get_clubs_by_filters(db: Session, club_type: str | None) -> List[models.Club
         query = query.filter(models.Club.club_type.ilike(f"%{club_type}%"))
         
     return query.all()
+
+def get_events_by_filters(
+    db: Session,
+    category: schemas.CategoryEnum | None,
+    venue: str | None,
+    date: date | None # Make sure `from datetime import date` is at the top
+) -> List[models.Event]:
+    """
+    Dynamically queries the Event table based on provided filters.
+    """
+    
+    # Start with a query for all events
+    query = db.query(models.Event)
+    
+    if category:
+        query = query.filter(models.Event.category == category)
+        
+    if venue:
+        query = query.filter(models.Event.venue.ilike(f"%{venue}%"))
+
+    if date:
+        query = query.filter(models.Event.date == date)
+        
+    # Execute the final query and return all results
+    return query.all()
+
+def get_all_rooms_with_occupancy(db: Session):
+    """
+    Returns all rooms with their current occupancy.
+    """
+    return db.query(
+        models.Room,
+        models.RoomOccupancy.current_occupancy
+    ).join(
+        models.RoomOccupancy,
+        models.Room.room_id == models.RoomOccupancy.room_id
+    ).all()
+
+
+def get_participants_by_room(db: Session, room_id: int):
+    """
+    Returns all participants currently residing in a given room.
+    """
+    return db.query(models.Participant).join(
+        models.RoomReserved,
+        models.Participant.participant_id == models.RoomReserved.participant_id
+    ).filter(
+        models.RoomReserved.room_id == room_id
+    ).all()
