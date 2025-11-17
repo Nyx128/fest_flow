@@ -1,7 +1,7 @@
 // colleges-tab.js
 // Module for managing the Colleges tab
 
-const CollegesModule = (function() {
+const CollegesModule = (function () {
     const API_URL = 'http://127.0.0.1:8000';
     let collegesTable;
 
@@ -15,9 +15,17 @@ const CollegesModule = (function() {
             pageLength: 25
         });
 
+        const user = getStoredUser();
+        const addCollegeButton = document.querySelector('[data-bs-target="#addCollegeModal"]');
+        if (addCollegeButton) {
+            if (user.role === 'Volunteer') {
+                addCollegeButton.style.display = 'none';
+            }
+        }
+
         // Set up event listeners
         setupEventListeners();
-        
+
         // Load initial data
         loadColleges();
     }
@@ -41,7 +49,7 @@ const CollegesModule = (function() {
         try {
             // Build query parameters from filter form
             const params = new URLSearchParams();
-            
+
             const city = document.getElementById('c-city').value.trim();
             const state = document.getElementById('c-state').value.trim();
 
@@ -56,7 +64,7 @@ const CollegesModule = (function() {
             }
 
             const data = await response.json();
-            
+
             // Update table
             updateTable(data);
 
@@ -69,7 +77,7 @@ const CollegesModule = (function() {
     function updateTable(data) {
         // Clear existing data
         collegesTable.clear();
-        
+
         // Add new data
         data.forEach(college => {
             collegesTable.row.add([
@@ -79,7 +87,7 @@ const CollegesModule = (function() {
                 college.state
             ]);
         });
-        
+
         // Redraw table
         collegesTable.draw();
     }

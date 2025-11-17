@@ -76,7 +76,14 @@ def validate_user_credentials(
     # If credentials are correct, return the user's data
     return db_user
 
-@app.get("/users/")
+@app.get("/users/", response_model=List[schemas.User])
+def get_all_users(db: Session = Depends(get_db)):
+    """
+    API endpoint to get all users.
+    (In production, this should be protected with authentication middleware)
+    """
+    users = db.query(models.User).all()
+    return users
 
 
 # --- API Endpoint for fests---

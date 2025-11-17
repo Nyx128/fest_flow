@@ -1,7 +1,7 @@
 // clubs-tab.js
 // Module for managing the Clubs tab
 
-const ClubsModule = (function() {
+const ClubsModule = (function () {
     const API_URL = 'http://127.0.0.1:8000';
     let clubsTable;
 
@@ -15,9 +15,17 @@ const ClubsModule = (function() {
             pageLength: 25
         });
 
+        const user = getStoredUser();
+        const addClubButton = document.querySelector('[data-bs-target="#addClubModal"]');
+        if (addClubButton) {
+            if (user.role === 'Volunteer') {
+                addClubButton.style.display = 'none';
+            }
+        }
+
         // Set up event listeners
         setupEventListeners();
-        
+
         // Load initial data
         loadClubs();
     }
@@ -41,7 +49,7 @@ const ClubsModule = (function() {
         try {
             // Build query parameters from filter form
             const params = new URLSearchParams();
-            
+
             const clubType = document.getElementById('club-type-filter').value.trim();
 
             if (clubType) params.append('club_type', clubType);
@@ -54,7 +62,7 @@ const ClubsModule = (function() {
             }
 
             const data = await response.json();
-            
+
             // Update table
             updateTable(data);
 
@@ -67,7 +75,7 @@ const ClubsModule = (function() {
     function updateTable(data) {
         // Clear existing data
         clubsTable.clear();
-        
+
         // Add new data
         data.forEach(club => {
             clubsTable.row.add([
@@ -80,7 +88,7 @@ const ClubsModule = (function() {
                 club.poc_position || 'N/A'
             ]);
         });
-        
+
         // Redraw table
         clubsTable.draw();
     }

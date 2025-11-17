@@ -1,7 +1,7 @@
 // accommodation-tab.js
 // Module for managing the Accommodation tab
 
-const AccommodationModule = (function() {
+const AccommodationModule = (function () {
     const API_URL = 'http://127.0.0.1:8000';
     let roomsTable;
     let participantsInRoomTable;
@@ -22,9 +22,9 @@ const AccommodationModule = (function() {
                 { data: 'gender' },
                 { data: 'max_capacity' },
                 { data: 'current_occupancy' },
-                { 
+                {
                     data: null,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         const percentage = (row.current_occupancy / row.max_capacity * 100).toFixed(0);
                         let badgeClass = 'bg-success';
                         if (percentage >= 90) {
@@ -37,7 +37,7 @@ const AccommodationModule = (function() {
                 },
                 {
                     data: null,
-                    render: function(data, type, row) {
+                    render: function (data, type, row) {
                         return `<button class="btn btn-sm btn-primary view-room-btn" data-room-id="${row.room_id}">View Details</button>`;
                     }
                 }
@@ -52,9 +52,17 @@ const AccommodationModule = (function() {
             pageLength: 25
         });
 
+        const user = getStoredUser();
+        const addRoomButton = document.querySelector('[data-bs-target="#addRoomModal"]');
+        if (addRoomButton) {
+            if (user.role === 'Event Head' || user.role === 'Volunteer') {
+                addRoomButton.style.display = 'none';
+            }
+        }
+        
         // Set up event listeners
         setupEventListeners();
-        
+
         // Load initial data
         loadRooms();
     }
@@ -84,7 +92,7 @@ const AccommodationModule = (function() {
             }
 
             const data = await response.json();
-            
+
             // Update table
             updateRoomsTable(data);
 
@@ -97,17 +105,17 @@ const AccommodationModule = (function() {
     function updateRoomsTable(data) {
         // Clear existing data
         roomsTable.clear();
-        
+
         // Add new data
         roomsTable.rows.add(data);
-        
+
         // Redraw table
         roomsTable.draw();
     }
 
     async function viewRoomDetails(roomId) {
         currentRoomId = roomId;
-        
+
         try {
             const url = `${API_URL}/rooms/${roomId}/participants/`;
             const response = await fetch(url);
@@ -121,13 +129,13 @@ const AccommodationModule = (function() {
             }
 
             const data = await response.json();
-            
+
             // Update the room details header
             updateRoomDetailsHeader(roomId);
-            
+
             // Update participants table
             updateParticipantsInRoomTable(data);
-            
+
             // Show room details view
             showRoomDetails();
 
@@ -140,7 +148,7 @@ const AccommodationModule = (function() {
     function updateRoomDetailsHeader(roomId) {
         // Find the room data from the current table
         const roomData = roomsTable.rows().data().toArray().find(r => r.room_id === roomId);
-        
+
         if (roomData) {
             const headerElement = document.getElementById('room-details-header');
             headerElement.innerHTML = `
@@ -154,7 +162,7 @@ const AccommodationModule = (function() {
     function updateParticipantsInRoomTable(data) {
         // Clear existing data
         participantsInRoomTable.clear();
-        
+
         // Add new data
         data.forEach(participant => {
             participantsInRoomTable.row.add([
@@ -168,7 +176,7 @@ const AccommodationModule = (function() {
                 participant.club_id || 'N/A'
             ]);
         });
-        
+
         // Redraw table
         participantsInRoomTable.draw();
     }

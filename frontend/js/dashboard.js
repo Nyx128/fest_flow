@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     EventsModule.init();
     AccommodationModule.init();
     ClubsModule.init();
+    UsersModule.init();
 });
 
 function setupTabNavigation() {

@@ -4,11 +4,17 @@
 const API_URL = 'http://127.0.0.1:8000';
 
 document.addEventListener('DOMContentLoaded', () => {
-    
+
+    const user = getStoredUser();
+
     // Add College Form Handler
     document.getElementById('submit-college').addEventListener('click', async () => {
+        if (user.role === 'Volunteer') {
+            alert('You do not have permission to perform this action.');
+            return;
+        }
         const form = document.getElementById('add-college-form');
-        
+
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -35,17 +41,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            
+
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('addCollegeModal'));
             modal.hide();
-            
+
             // Reset form
             form.reset();
-            
+
             // Show success message
             alert(`College "${result.name}" added successfully!`);
-            
+
             // Reload colleges table
             CollegesModule.reload();
 
@@ -57,8 +63,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Club Form Handler
     document.getElementById('submit-club').addEventListener('click', async () => {
+        if (user.role === 'Volunteer') {
+            alert('You do not have permission to perform this action.');
+            return;
+        }
+
         const form = document.getElementById('add-club-form');
-        
+
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -88,17 +99,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            
+
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('addClubModal'));
             modal.hide();
-            
+
             // Reset form
             form.reset();
-            
+
             // Show success message
             alert(`Club "${result.club_name}" added successfully!`);
-            
+
             // Reload clubs table
             ClubsModule.reload();
 
@@ -111,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add Event Form Handler
     document.getElementById('submit-event').addEventListener('click', async () => {
         const form = document.getElementById('add-event-form');
-        
+
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -142,17 +153,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            
+
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('addEventModal'));
             modal.hide();
-            
+
             // Reset form
             form.reset();
-            
+
             // Show success message
             alert(`Event "${result.name}" added successfully!`);
-            
+
             // Reload events
             EventsModule.reload();
 
@@ -164,8 +175,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Room Form Handler
     document.getElementById('submit-room').addEventListener('click', async () => {
+
+        if (user.role === 'Event Head' || user.role === 'Volunteer') {
+            alert('You do not have permission to perform this action.');
+            return;
+        }
+
         const form = document.getElementById('add-room-form');
-        
+
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -193,17 +210,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            
+
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('addRoomModal'));
             modal.hide();
-            
+
             // Reset form
             form.reset();
-            
+
             // Show success message
             alert(`Room ${result.building_name} - ${result.room_no} added successfully!`);
-            
+
             // Reload rooms table
             AccommodationModule.reload();
 
@@ -218,13 +235,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add Team Member button
     document.getElementById('add-team-member').addEventListener('click', () => {
+        if (user.role === 'Volunteer') {
+            alert('You do not have permission to perform this action.');
+            return;
+        }
         addTeamMemberForm();
     });
 
     function addTeamMemberForm() {
+        
         memberCount++;
         const container = document.getElementById('team-members-container');
-        
+
         const memberDiv = document.createElement('div');
         memberDiv.className = 'card mb-3 p-3';
         memberDiv.id = `member-${memberCount}`;
@@ -275,12 +297,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
-        
+
         container.appendChild(memberDiv);
     }
 
     // Make removeTeamMember globally accessible
-    window.removeTeamMember = function(id) {
+    window.removeTeamMember = function (id) {
         const memberDiv = document.getElementById(`member-${id}`);
         if (memberDiv) {
             memberDiv.remove();
@@ -290,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Submit Team button
     document.getElementById('submit-team').addEventListener('click', async () => {
         const form = document.getElementById('add-team-form');
-        
+
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -302,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Collect all team members
         const members = [];
         const memberDivs = document.querySelectorAll('#team-members-container > .card');
-        
+
         if (memberDivs.length === 0) {
             alert('Please add at least one team member');
             return;
@@ -342,19 +364,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const result = await response.json();
-            
+
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('addTeamModal'));
             modal.hide();
-            
+
             // Reset form
             form.reset();
             document.getElementById('team-members-container').innerHTML = '';
             memberCount = 0;
-            
+
             // Show success message
             alert(`Team "${result.team_name}" added successfully with ${result.members.length} members!`);
-            
+
             // Reload event details if we're on event details view
             if (EventsModule.currentEvent) {
                 EventsModule.viewEventDetails(EventsModule.currentEvent);

@@ -47,6 +47,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#" data-tab="accommodation">Accommodation</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="users">Users</a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
@@ -411,6 +414,61 @@
 
         </div>
 
+        <div id="users-tab" class="tab-content" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Users Management</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    + Add New User
+                </button>
+            </div>
+
+            <!-- Results Table -->
+            <div class="card bg-custom-card text-dark p-3">
+                <table id="users-table" class="table table-striped" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Users Tab (Admin Only) -->
+        <div id="users-tab" class="tab-content" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Users Management</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                    + Add New User
+                </button>
+            </div>
+
+            <!-- Results Table -->
+            <div class="card bg-custom-card text-dark p-3">
+                <table id="users-table" class="table table-striped" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
     <!-- Add College Modal -->
@@ -615,6 +673,62 @@
         </div>
     </div>
 
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-custom-card">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-user-form">
+                        <!-- Form Error Message -->
+                        <div class="alert alert-danger d-none" role="alert" id="form-error-message">
+                            <!-- JS will populate this -->
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="user-username" class="form-label">Username *</label>
+                            <input type="text" class="form-control" id="user-username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user-password" class="form-label">Password *</label>
+                            <input type="password" class="form-control" id="user-password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user-name" class="form-label">Full Name *</label>
+                            <input type="text" class="form-control" id="user-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user-email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="user-email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user-phone" class="form-label">Phone (10 digits) *</label>
+                            <input type="text" class="form-control" id="user-phone" pattern="\d{10}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="user-role" class="form-label">Role *</label>
+                            <select class="form-select" id="user-role" required>
+                                <option value="">Select Role</option>
+                                <option value="Admin">Admin</option>
+                                <option value="Coordinator">Coordinator</option>
+                                <option value="Event Head">Event Head</option>
+                                <option value="Volunteer">Volunteer</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Modal Footer with Submit Button -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Create User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- jQuery (required for DataTables) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
@@ -633,6 +747,7 @@
     <script src="js/clubs-tab.js"></script>
     <script src="js/events-tab.js"></script>
     <script src="js/accommodation-tab.js"></script>
+    <script src="js/users-tab.js"></script>
     <script src="js/form-handlers.js"></script>
 
     <!-- Main Dashboard Controller -->

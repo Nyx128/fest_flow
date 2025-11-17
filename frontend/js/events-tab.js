@@ -1,7 +1,7 @@
 // events-tab.js
 // Completely rewritten module for the new card-based Events tab
 
-const EventsModule = (function() {
+const EventsModule = (function () {
     const API_URL = 'http://127.0.0.1:8000';
     let teamMembersTable;
     let allEvents = [];
@@ -18,9 +18,17 @@ const EventsModule = (function() {
             pageLength: 25
         });
 
+        const user = getStoredUser();
+        const addTeamButton = document.querySelector('[data-bs-target="#addEventModal"]');
+        if (addTeamButton) {
+            if (user.role === 'Volunteer') {
+                addTeamButton.style.display = 'none';
+            }
+        }
+
         // Set up event listeners
         setupEventListeners();
-        
+
         // Load initial data
         loadEvents();
     }
@@ -117,7 +125,7 @@ const EventsModule = (function() {
 
     function renderEventCards(events, containerId) {
         const container = document.getElementById(containerId);
-        
+
         events.forEach(event => {
             const card = createEventCard(event);
             container.appendChild(card);
@@ -159,7 +167,7 @@ const EventsModule = (function() {
 
     async function viewEventDetails(event) {
         currentEvent = event;
-        
+
         try {
             // Update event info
             document.getElementById('event-details-title').textContent = event.name;
@@ -180,7 +188,7 @@ const EventsModule = (function() {
 
             // Load teams for this event
             const teamsResponse = await fetch(`${API_URL}/events/${event.event_id}/teams/`);
-            
+
             if (!teamsResponse.ok) {
                 throw new Error(`HTTP error! status: ${teamsResponse.ok}`);
             }
@@ -199,19 +207,19 @@ const EventsModule = (function() {
 
     function renderTeamsList(teams) {
         const container = document.getElementById('teams-list-container');
-        
+
         if (teams.length === 0) {
             container.innerHTML = '<p class="text-muted">No teams have registered for this event yet.</p>';
             return;
         }
 
         container.innerHTML = '';
-        
+
         teams.forEach(team => {
             const teamItem = document.createElement('div');
             teamItem.className = 'team-item';
             teamItem.onclick = () => viewTeamDetails(team);
-            
+
             teamItem.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -221,27 +229,27 @@ const EventsModule = (function() {
                     <button class="btn btn-sm btn-outline-primary">View Members →</button>
                 </div>
             `;
-            
+
             container.appendChild(teamItem);
         });
     }
 
     async function viewTeamDetails(team) {
         currentTeam = team;
-        
+
         try {
             // Update team title
             document.getElementById('team-details-title').textContent = `${team.team_name} (${team.participant_count} members)`;
 
             // Load team members
             const response = await fetch(`${API_URL}/teams/${team.team_id}/participants/`);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const participants = await response.json();
-            
+
             // Update table
             updateTeamMembersTable(participants);
 
@@ -257,7 +265,7 @@ const EventsModule = (function() {
     function updateTeamMembersTable(participants) {
         // Clear existing data
         teamMembersTable.clear();
-        
+
         // Add new data
         participants.forEach(participant => {
             teamMembersTable.row.add([
@@ -271,7 +279,7 @@ const EventsModule = (function() {
                 participant.club_id || 'N/A'
             ]);
         });
-        
+
         // Redraw table
         teamMembersTable.draw();
     }
@@ -298,7 +306,7 @@ const EventsModule = (function() {
     function showLoading(show) {
         const loadingEl = document.getElementById('events-loading');
         const sectionsEl = document.querySelectorAll('.category-section');
-        
+
         if (show) {
             loadingEl.style.display = 'flex';
             sectionsEl.forEach(el => el.style.display = 'none');
@@ -322,10 +330,10 @@ const EventsModule = (function() {
     // Helper functions
     function formatDate(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
         });
     }
 
