@@ -363,7 +363,7 @@ def query_colleges(
 
 @app.get("/clubs/query/", response_model=List[schemas.Club])
 def query_clubs(
-    club_type: str | None = None,
+    club_type: schemas.CategoryEnum| None = None,
     db: Session = Depends(get_db)
 ):
     """
@@ -403,3 +403,88 @@ def get_participants_in_room(room_id: int, db: Session = Depends(get_db)):
     if not participants:
         raise HTTPException(status_code=404, detail="No participants found in this room")
     return participants
+
+@app.get("/events/{event_id}/teams/", status_code=status.HTTP_200_OK)
+def get_teams_for_event(event_id: int, db: Session = Depends(get_db)):
+    """
+    Fetch all teams registered for a specific event with participant counts.
+    """
+    # Check if event exists
+    db_event = crud.get_event(db, event_id=event_id)
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Get all team_events for this event
+    team_events = db.query(models.TeamEvent).filter(
+        models.TeamEvent.event_id == event_id
+    ).all()
+    
+    result = []
+    for te in team_events:
+        # Get the team
+        team = db.query(models.Team).filter(
+            models.Team.team_id == te.team_id
+        ).first()
+        
+        # Count participants in this team
+        participant_count = db.query(models.TeamMember).filter(
+            models.TeamMember.team_id == te.team_id
+        ).count()
+        
+        result.append({
+            "team_id": team.team_id,
+            "team_name": team.team_name,
+            "participant_count": participant_count
+        })
+    
+    return result
+
+
+# --- New endpoint: Get participants for a specific team ---
+@app.get("/teams/{team_id}/participants/", response_model=List[schemas.Participant])
+def get_team_participants(team_id: int, db: Session = Depends(get_db)):
+    team = db.query(models.Team).filter(models.Team.team_id == team_id).first()
+    if not team:
+        raise ValueError("non existent/invalid team_id")
+
+    participants = db.query(models.Participant).join(
+        models.TeamMember,
+        models.Participant.participant_id == models.TeamMember.participant_id
+    ).filter(
+        models.TeamMember.team_id == team_id
+    ).all()
+    
+    return participants
+
+
+# --- New endpoint: Get event statistics ---
+@app.get("/events/{event_id}/stats/", status_code=status.HTTP_200_OK)
+def get_event_stats(event_id: int, db: Session = Depends(get_db)):
+    """
+    Get statistics for a specific event (team count, participant count).
+    """
+    # Check if event exists
+    db_event = crud.get_event(db, event_id=event_id)
+    if not db_event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    team_count = db.query(models.TeamEvent).filter(
+        models.TeamEvent.event_id == event_id
+    ).count()
+    
+    # Count participants (through teams)
+    participant_count = db.query(models.Participant).join(
+        models.TeamMember,
+        models.Participant.participant_id == models.TeamMember.participant_id
+    ).join(
+        models.TeamEvent,
+        models.TeamMember.team_id == models.TeamEvent.team_id
+    ).filter(
+        models.TeamEvent.event_id == event_id
+    ).distinct().count()
+
+    return {
+        "event_id": event_id,
+        "team_count": team_count,
+        "participant_count": participant_count
+    }

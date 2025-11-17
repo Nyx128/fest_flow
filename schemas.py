@@ -136,6 +136,13 @@ class College(CollegeBase):
     class Config:
         from_attributes = True
 
+
+class CategoryEnum(str, Enum):
+    """Enumeration for event and club category, matching the DB."""
+    technical = "technical"
+    cultural = "cultural"
+    managerial = "managerial"
+    
 class ClubBase(BaseModel):
     club_name: str
     college_id: int
@@ -187,11 +194,6 @@ class Room(RoomBase):
         from_attributes = True
 
 # --- Event schema ---
-class CategoryEnum(str, Enum):
-    """Enumeration for event category, matching the DB."""
-    technical = "technical"
-    cultural = "cultural"
-    managerial = "managerial"
 
 class EventBase(BaseModel):
     name: str

@@ -173,8 +173,21 @@ def delete_team_by_id(db: Session, team_id: int):
         db.rollback() # Rollback all changes if any step fails
         raise e # Re-raise the exception to be handled by main.py
     
-# --- College and Club CRUD ---
+def get_participants_from_team(db:Session, team_id:int):
+    team = db.query(models.Team).filter(models.Team.team_id == team_id).first()
+    if not team:
+        raise ValueError("non existent/invalid team_id")
 
+    participants = db.query(models.Participant).join(
+        models.TeamMember,
+        models.Participant.participant_id == models.TeamMember.participant_id
+    ).filter(
+        models.TeamMember.team_id == team_id
+    ).all()
+    
+    return participants
+    
+# --- College and Club CRUD ---
 def get_college_by_name(db: Session, name: str):
     """Fetches a college by name."""
     return db.query(models.College).filter(models.College.name == name).first()
@@ -399,6 +412,29 @@ def assign_room_to_participant(db: Session, participant_id: int):
     except Exception as e:
         db.rollback() # Rollback on failure
         raise e # Re-raise exception for the API layer to handle
+
+def get_all_rooms_with_occupancy(db: Session):
+    """
+    Returns all rooms with their current occupancy.
+    """
+    return db.query(
+        models.Room,
+        models.RoomOccupancy.current_occupancy
+    ).join(
+        models.RoomOccupancy,
+        models.Room.room_id == models.RoomOccupancy.room_id
+    ).all()
+
+def get_participants_by_room(db: Session, room_id: int):
+    """
+    Returns all participants currently residing in a given room.
+    """
+    return db.query(models.Participant).join(
+        models.RoomReserved,
+        models.Participant.participant_id == models.RoomReserved.participant_id
+    ).filter(
+        models.RoomReserved.room_id == room_id
+    ).all()
 # -- Event crud --
 
 def get_event(db: Session, event_id: int):
@@ -418,6 +454,27 @@ def create_event(db: Session, event: schemas.EventCreate):
     db.refresh(db_event)
     return db_event
 
+def get_event_stats(db:Session, event_id:int):
+    team_count = db.query(models.TeamEvent).filter(
+        models.TeamEvent.event_id == event_id
+    ).count()
+    
+    # Count participants (through teams)
+    participant_count = db.query(models.Participant).join(
+        models.TeamMember,
+        models.Participant.participant_id == models.TeamMember.participant_id
+    ).join(
+        models.TeamEvent,
+        models.TeamMember.team_id == models.TeamEvent.team_id
+    ).filter(
+        models.TeamEvent.event_id == event_id
+    ).distinct().count()
+
+    return {
+        "event_id": event_id,
+        "team_count": team_count,
+        "participant_count": participant_count
+    }
 #--filter crud--
 def get_participants_by_filters(
     db: Session, 
@@ -444,6 +501,7 @@ def get_participants_by_filters(
             models.Participant.participant_id == models.TeamMember.participant_id
         ).join(
             models.Team, 
+
             models.TeamMember.team_id == models.Team.team_id
         ).join(
             models.TeamEvent, 
@@ -506,7 +564,7 @@ def get_colleges_by_filters(db: Session, city: str | None, state: str | None) ->
         
     return query.all()
 
-def get_clubs_by_filters(db: Session, club_type: str | None) -> List[models.Club]:
+def get_clubs_by_filters(db: Session, club_type: schemas.CategoryEnum | None) -> List[models.Club]:
     """
     Dynamically queries the Club table based on club type.
     """
@@ -514,7 +572,7 @@ def get_clubs_by_filters(db: Session, club_type: str | None) -> List[models.Club
     
     if club_type:
         # Use .ilike() for case-insensitive partial matching
-        query = query.filter(models.Club.club_type.ilike(f"%{club_type}%"))
+        query = query.filter(models.Club.club_type == club_type)
         
     return query.all()
 
@@ -543,26 +601,4 @@ def get_events_by_filters(
     # Execute the final query and return all results
     return query.all()
 
-def get_all_rooms_with_occupancy(db: Session):
-    """
-    Returns all rooms with their current occupancy.
-    """
-    return db.query(
-        models.Room,
-        models.RoomOccupancy.current_occupancy
-    ).join(
-        models.RoomOccupancy,
-        models.Room.room_id == models.RoomOccupancy.room_id
-    ).all()
 
-
-def get_participants_by_room(db: Session, room_id: int):
-    """
-    Returns all participants currently residing in a given room.
-    """
-    return db.query(models.Participant).join(
-        models.RoomReserved,
-        models.Participant.participant_id == models.RoomReserved.participant_id
-    ).filter(
-        models.RoomReserved.room_id == room_id
-    ).all()

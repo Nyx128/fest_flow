@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fest Dashboard</title>
-    
+
     <!-- Auth Script: Must run before body renders to prevent page flash -->
     <script src="js/auth.js"></script>
-    
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        crossorigin="anonymous">
+
     <!-- DataTables CSS -->
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css">
-    
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body class="bg-light text-dark">
 
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm" style="border-bottom: 1px solid #DEE2E6;">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">Fest Dashboard</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -33,6 +37,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#" data-tab="colleges">Colleges</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" data-tab="clubs">Clubs</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#" data-tab="events">Events</a>
@@ -55,11 +62,11 @@
 
     <!-- Main Content -->
     <main class="container-fluid mt-4">
-        
+
         <!-- Participants Tab -->
         <div id="participants-tab" class="tab-content">
             <h2>Participants</h2>
-            
+
             <!-- Filters Card -->
             <div class="card bg-custom-card text-dark p-3 mb-3">
                 <h5>Filters</h5>
@@ -123,8 +130,13 @@
 
         <!-- Colleges Tab -->
         <div id="colleges-tab" class="tab-content" style="display: none;">
-            <h2>Colleges</h2>
-            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Colleges</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCollegeModal">
+                    + Add New College
+                </button>
+            </div>
+
             <!-- Filters Card -->
             <div class="card bg-custom-card text-dark p-3 mb-3">
                 <h5>Filters</h5>
@@ -162,51 +174,47 @@
             </div>
         </div>
 
-        <!-- Events Tab -->
-        <div id="events-tab" class="tab-content" style="display: none;">
-            <h2>Events</h2>
-            
+        <!-- Clubs Tab -->
+        <div id="clubs-tab" class="tab-content" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Clubs</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClubModal">
+                    + Add New Club
+                </button>
+            </div>
+
             <!-- Filters Card -->
             <div class="card bg-custom-card text-dark p-3 mb-3">
                 <h5>Filters</h5>
-                <form id="events-filter-form" class="row g-3">
+                <form id="clubs-filter-form" class="row g-3">
                     <div class="col-md-3">
-                        <label for="e-category" class="form-label">Category</label>
-                        <select class="form-select" id="e-category">
-                            <option value="">All</option>
+                        <label for="club-type-filter" class="form-label">Club Type</label>
+                        <select id="club-type-filter" class="form-select">
+                            <option value="">All Types</option>
                             <option value="technical">Technical</option>
                             <option value="cultural">Cultural</option>
                             <option value="managerial">Managerial</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label for="e-venue" class="form-label">Venue</label>
-                        <input type="text" class="form-control" id="e-venue" placeholder="Enter venue">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="e-date" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="e-date">
-                    </div>
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">Apply Filters</button>
-                        <button type="button" class="btn btn-secondary" id="e-clear-filters">Clear Filters</button>
+                        <button type="button" class="btn btn-secondary" id="club-clear-filters">Clear Filters</button>
                     </div>
                 </form>
             </div>
 
             <!-- Results Table -->
             <div class="card bg-custom-card text-dark p-3">
-                <table id="events-table" class="table table-striped" style="width:100%">
+                <table id="clubs-table" class="table table-striped" style="width:100%">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Name</th>
-                            <th>Fest ID</th>
-                            <th>Category</th>
-                            <th>Venue</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Max Team Size</th>
+                            <th>Club Name</th>
+                            <th>College ID</th>
+                            <th>Club Type</th>
+                            <th>POC</th>
+                            <th>POC Contact</th>
+                            <th>POC Position</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -216,13 +224,126 @@
             </div>
         </div>
 
+        <!-- Events Tab -->
+        <div id="events-tab" class="tab-content" style="display: none;">
+
+            <!-- Events List View -->
+            <div id="events-list-view">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>Events</h2>
+                    <div>
+                        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addEventModal">
+                            + Add New Event
+                        </button>
+                        <button id="refresh-events-btn" class="btn btn-outline-primary">
+                            <span>🔄</span> Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="events-loading" class="spinner-container" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Technical Events Section -->
+                <div class="category-section">
+                    <h3>Technical Events</h3>
+                    <div id="technical-events-container" class="row g-3">
+                        <!-- Event cards will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Cultural Events Section -->
+                <div class="category-section">
+                    <h3>Cultural Events</h3>
+                    <div id="cultural-events-container" class="row g-3">
+                        <!-- Event cards will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Managerial Events Section -->
+                <div class="category-section">
+                    <h3>Managerial Events</h3>
+                    <div id="managerial-events-container" class="row g-3">
+                        <!-- Event cards will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Details View -->
+            <div id="event-details-view" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 id="event-details-title">Event Details</h2>
+                    <div>
+                        <button class="btn btn-primary me-2" data-bs-toggle="modal" data-bs-target="#addTeamModal">
+                            + Add New Team
+                        </button>
+                        <button id="back-to-events-btn" class="btn btn-secondary">← Back to Events</button>
+                    </div>
+                </div>
+
+                <!-- Event Info Card -->
+                <div class="card bg-custom-card text-dark p-3 mb-3">
+                    <div id="event-info-content">
+                        <!-- Event details will be inserted here -->
+                    </div>
+                </div>
+
+                <!-- Teams List -->
+                <div class="card bg-custom-card text-dark p-3 mb-3">
+                    <h5 class="mb-3">Teams Participating</h5>
+                    <div id="teams-list-container">
+                        <!-- Teams will be listed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Details View -->
+            <div id="team-details-view" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 id="team-details-title">Team Details</h2>
+                    <button id="back-to-event-btn" class="btn btn-secondary">← Back to Event</button>
+                </div>
+
+                <div class="card bg-custom-card text-dark p-3">
+                    <h5>Team Members</h5>
+                    <table id="team-members-table" class="table table-striped" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Gender</th>
+                                <th>Merch Size</th>
+                                <th>College ID</th>
+                                <th>Club ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Participant data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
         <!-- Accommodation Tab -->
         <div id="accommodation-tab" class="tab-content" style="display: none;">
-            
+
             <!-- Rooms List View -->
             <div id="rooms-list-view">
-                <h2>Accommodation - Room Occupancy</h2>
-                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Accommodation - Room Occupancy</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                        + Add New Room
+                    </button>
+                </div>
+
                 <div class="card bg-custom-card text-dark p-3">
                     <table id="rooms-table" class="table table-striped" style="width:100%">
                         <thead>
@@ -250,7 +371,7 @@
                     <h2>Room Details</h2>
                     <button id="back-to-rooms-btn" class="btn btn-secondary">← Back to Rooms</button>
                 </div>
-                
+
                 <div class="card bg-custom-card text-dark p-3 mb-3">
                     <h5 id="room-details-header">
                         <!-- Room info will be inserted here -->
@@ -283,12 +404,216 @@
 
     </main>
 
+    <!-- Add College Modal -->
+    <div class="modal fade" id="addCollegeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-custom-card">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New College</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-college-form">
+                        <div class="mb-3">
+                            <label for="college-name" class="form-label">College Name *</label>
+                            <input type="text" class="form-control" id="college-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="college-city" class="form-label">City *</label>
+                            <input type="text" class="form-control" id="college-city" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="college-state" class="form-label">State *</label>
+                            <input type="text" class="form-control" id="college-state" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submit-college">Add College</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Club Modal -->
+    <div class="modal fade" id="addClubModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-custom-card">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Club</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-club-form">
+                        <div class="mb-3">
+                            <label for="club-name" class="form-label">Club Name *</label>
+                            <input type="text" class="form-control" id="club-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="club-college-id" class="form-label">College ID *</label>
+                            <input type="number" class="form-control" id="club-college-id" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="club-type" class="form-label">Club Type</label>
+                            <input type="text" class="form-control" id="club-type">
+                        </div>
+                        <div class="mb-3">
+                            <label for="club-poc" class="form-label">POC Name</label>
+                            <input type="text" class="form-control" id="club-poc">
+                        </div>
+                        <div class="mb-3">
+                            <label for="club-poc-contact" class="form-label">POC Contact (10 digits) *</label>
+                            <input type="text" class="form-control" id="club-poc-contact" pattern="\d{10}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="club-poc-position" class="form-label">POC Position</label>
+                            <input type="text" class="form-control" id="club-poc-position">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submit-club">Add Club</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Event Modal -->
+    <div class="modal fade" id="addEventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-custom-card">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-event-form">
+                        <div class="mb-3">
+                            <label for="event-name" class="form-label">Event Name *</label>
+                            <input type="text" class="form-control" id="event-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="event-fest-id" class="form-label">Fest ID *</label>
+                            <input type="number" class="form-control" id="event-fest-id" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="event-category" class="form-label">Category *</label>
+                            <select class="form-select" id="event-category" required>
+                                <option value="">Select Category</option>
+                                <option value="technical">Technical</option>
+                                <option value="cultural">Cultural</option>
+                                <option value="managerial">Managerial</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="event-venue" class="form-label">Venue</label>
+                            <input type="text" class="form-control" id="event-venue">
+                        </div>
+                        <div class="mb-3">
+                            <label for="event-date" class="form-label">Date *</label>
+                            <input type="date" class="form-control" id="event-date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="event-time" class="form-label">Time *</label>
+                            <input type="time" class="form-control" id="event-time" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="event-max-team-size" class="form-label">Max Team Size *</label>
+                            <input type="number" class="form-control" id="event-max-team-size" min="1" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submit-event">Add Event</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Room Modal -->
+    <div class="modal fade" id="addRoomModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-custom-card">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Room</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-room-form">
+                        <div class="mb-3">
+                            <label for="room-building" class="form-label">Building Name *</label>
+                            <input type="text" class="form-control" id="room-building" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="room-no" class="form-label">Room Number *</label>
+                            <input type="text" class="form-control" id="room-no" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="room-gender" class="form-label">Gender *</label>
+                            <select class="form-select" id="room-gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="room-capacity" class="form-label">Max Capacity *</label>
+                            <input type="number" class="form-control" id="room-capacity" min="1" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submit-room">Add Room</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Team Modal -->
+    <div class="modal fade" id="addTeamModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-custom-card">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Team</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-team-form">
+                        <div class="mb-3">
+                            <label for="team-name" class="form-label">Team Name *</label>
+                            <input type="text" class="form-control" id="team-name" required>
+                        </div>
+                        <input type="hidden" id="team-event-id">
+
+                        <h6 class="mt-4 mb-3">Team Members</h6>
+                        <div id="team-members-container">
+                            <!-- Dynamic participant forms will be added here -->
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="add-team-member">
+                            + Add Member
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="submit-team">Add Team</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- jQuery (required for DataTables) -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+
     <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
+
     <!-- DataTables JS -->
     <script type="text/javascript" src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
@@ -296,10 +621,13 @@
     <!-- Module Scripts - Load in order -->
     <script src="js/participants-tab.js"></script>
     <script src="js/colleges-tab.js"></script>
+    <script src="js/clubs-tab.js"></script>
     <script src="js/events-tab.js"></script>
     <script src="js/accommodation-tab.js"></script>
-    
+    <script src="js/form-handlers.js"></script>
+
     <!-- Main Dashboard Controller -->
     <script src="js/dashboard.js"></script>
 </body>
+
 </html>

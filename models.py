@@ -33,7 +33,8 @@ class Club(Base):
     club_id = Column(Integer, primary_key=True)
     college_id = Column(Integer, ForeignKey("colleges.college_id"), nullable=False)
     club_name = Column(String(100), nullable=False)
-    club_type = Column(String(50))
+    club_type = Column(
+        Enum("technical", "cultural", "managerial", name="category_enum"), nullable=False)
     poc = Column(String(100))
     poc_contact = Column(String(10), nullable = False)
     poc_position = Column(String(100))
