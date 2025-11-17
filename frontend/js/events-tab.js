@@ -1,12 +1,19 @@
 // events-tab.js
 // Completely rewritten module for the new card-based Events tab
 
-const EventsModule = (function () {
+const EventsModule = (function() {
     const API_URL = 'http://127.0.0.1:8000';
     let teamMembersTable;
     let allEvents = [];
-    let currentEvent = null;
-    let currentTeam = null;
+
+    const publicApi = {
+        init: init,
+        reload: loadEvents,
+        currentEvent: null,
+        currentTeam: null,   
+        viewEventDetails: viewEventDetails
+    };
+
 
     function init() {
         // Initialize DataTable for team members
@@ -18,17 +25,9 @@ const EventsModule = (function () {
             pageLength: 25
         });
 
-        const user = getStoredUser();
-        const addTeamButton = document.querySelector('[data-bs-target="#addEventModal"]');
-        if (addTeamButton) {
-            if (user.role === 'Volunteer') {
-                addTeamButton.style.display = 'none';
-            }
-        }
-
         // Set up event listeners
         setupEventListeners();
-
+        
         // Load initial data
         loadEvents();
     }
@@ -46,13 +45,14 @@ const EventsModule = (function () {
 
         // Back to event details
         document.getElementById('back-to-event-btn').addEventListener('click', () => {
-            if (currentEvent) {
-                viewEventDetails(currentEvent);
+            if (publicApi.currentEvent) { // <-- CHANGED
+                viewEventDetails(publicApi.currentEvent); // <-- CHANGED
             }
         });
     }
 
     async function loadEvents() {
+        // ... (this function is unchanged)
         showLoading(true);
         try {
             // Get all events without filters
@@ -93,7 +93,6 @@ const EventsModule = (function () {
     }
 
     function renderEventsByCategory(events) {
-        // Clear all containers
         document.getElementById('technical-events-container').innerHTML = '';
         document.getElementById('cultural-events-container').innerHTML = '';
         document.getElementById('managerial-events-container').innerHTML = '';
@@ -124,8 +123,9 @@ const EventsModule = (function () {
     }
 
     function renderEventCards(events, containerId) {
+        // ... (this function is unchanged)
         const container = document.getElementById(containerId);
-
+        
         events.forEach(event => {
             const card = createEventCard(event);
             container.appendChild(card);
@@ -133,6 +133,7 @@ const EventsModule = (function () {
     }
 
     function createEventCard(event) {
+        // ... (this function is unchanged)
         const col = document.createElement('div');
         col.className = 'col-md-6 col-lg-4';
 
@@ -166,8 +167,8 @@ const EventsModule = (function () {
     }
 
     async function viewEventDetails(event) {
-        currentEvent = event;
-
+        publicApi.currentEvent = event; // <-- CHANGED
+        
         try {
             // Update event info
             document.getElementById('event-details-title').textContent = event.name;
@@ -188,7 +189,7 @@ const EventsModule = (function () {
 
             // Load teams for this event
             const teamsResponse = await fetch(`${API_URL}/events/${event.event_id}/teams/`);
-
+            
             if (!teamsResponse.ok) {
                 throw new Error(`HTTP error! status: ${teamsResponse.ok}`);
             }
@@ -207,19 +208,19 @@ const EventsModule = (function () {
 
     function renderTeamsList(teams) {
         const container = document.getElementById('teams-list-container');
-
+        
         if (teams.length === 0) {
             container.innerHTML = '<p class="text-muted">No teams have registered for this event yet.</p>';
             return;
         }
 
         container.innerHTML = '';
-
+        
         teams.forEach(team => {
             const teamItem = document.createElement('div');
             teamItem.className = 'team-item';
             teamItem.onclick = () => viewTeamDetails(team);
-
+            
             teamItem.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -229,31 +230,29 @@ const EventsModule = (function () {
                     <button class="btn btn-sm btn-outline-primary">View Members →</button>
                 </div>
             `;
-
+            
             container.appendChild(teamItem);
         });
     }
 
     async function viewTeamDetails(team) {
-        currentTeam = team;
-
+        publicApi.currentTeam = team;
+        
         try {
             // Update team title
             document.getElementById('team-details-title').textContent = `${team.team_name} (${team.participant_count} members)`;
 
             // Load team members
             const response = await fetch(`${API_URL}/teams/${team.team_id}/participants/`);
-
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const participants = await response.json();
-
-            // Update table
+            
             updateTeamMembersTable(participants);
 
-            // Show team details view
             showTeamDetailsView();
 
         } catch (error) {
@@ -263,10 +262,8 @@ const EventsModule = (function () {
     }
 
     function updateTeamMembersTable(participants) {
-        // Clear existing data
         teamMembersTable.clear();
-
-        // Add new data
+        
         participants.forEach(participant => {
             teamMembersTable.row.add([
                 participant.participant_id,
@@ -279,19 +276,21 @@ const EventsModule = (function () {
                 participant.club_id || 'N/A'
             ]);
         });
-
-        // Redraw table
+        
         teamMembersTable.draw();
     }
 
     // View management functions
     function showEventsListView() {
+        publicApi.currentEvent = null;
+        publicApi.currentTeam = null;
         document.getElementById('events-list-view').style.display = 'block';
         document.getElementById('event-details-view').style.display = 'none';
         document.getElementById('team-details-view').style.display = 'none';
     }
 
     function showEventDetailsView() {
+        publicApi.currentTeam = null;
         document.getElementById('events-list-view').style.display = 'none';
         document.getElementById('event-details-view').style.display = 'block';
         document.getElementById('team-details-view').style.display = 'none';
@@ -306,7 +305,7 @@ const EventsModule = (function () {
     function showLoading(show) {
         const loadingEl = document.getElementById('events-loading');
         const sectionsEl = document.querySelectorAll('.category-section');
-
+        
         if (show) {
             loadingEl.style.display = 'flex';
             sectionsEl.forEach(el => el.style.display = 'none');
@@ -327,13 +326,12 @@ const EventsModule = (function () {
         `;
     }
 
-    // Helper functions
     function formatDate(dateStr) {
         const date = new Date(dateStr);
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
         });
     }
 
@@ -341,9 +339,5 @@ const EventsModule = (function () {
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
-    // Public API
-    return {
-        init: init,
-        reload: loadEvents
-    };
+    return publicApi; 
 })();

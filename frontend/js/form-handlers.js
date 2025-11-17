@@ -3,6 +3,32 @@
 
 const API_URL = 'http://127.0.0.1:8000';
 
+function parseFastAPIError(errorData, defaultMessage = 'An unknown error occurred.') {
+    if (!errorData || !errorData.detail) {
+        return defaultMessage;
+    }
+
+    const detail = errorData.detail;
+
+    if (typeof detail === 'string') {
+        // This is a simple string error (e.g., from HTTPException)
+        return detail;
+    }
+
+    if (Array.isArray(detail) && detail.length > 0) {
+        // This is a Pydantic validation error
+        const firstError = detail[0];
+        const field = firstError.loc.length > 1 ? firstError.loc[firstError.loc.length - 1] : 'Unknown field';
+        // Capitalize first letter of field
+        const cleanField = field.charAt(0).toUpperCase() + field.slice(1);
+        
+        return `${firstError.msg} (Field: ${cleanField})`;
+    }
+
+    // Fallback for other object types
+    return defaultMessage;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
 
     const user = getStoredUser();
@@ -230,10 +256,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Add Team Form Handler
-    let memberCount = 0;
+let memberCount = 0;
 
     // Add Team Member button
+    // (Your existing permission check here is perfect)
     document.getElementById('add-team-member').addEventListener('click', () => {
         if (user.role === 'Volunteer') {
             alert('You do not have permission to perform this action.');
@@ -243,15 +269,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function addTeamMemberForm() {
-        
         memberCount++;
         const container = document.getElementById('team-members-container');
 
         const memberDiv = document.createElement('div');
         memberDiv.className = 'card mb-3 p-3';
         memberDiv.id = `member-${memberCount}`;
+        // (Using your new HTML structure)
         memberDiv.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center mb-2">
+            <div classclass="d-flex justify-content-between align-items-center mb-2">
                 <h6 class="mb-0">Member ${memberCount}</h6>
                 <button type="button" class="btn btn-sm btn-danger" onclick="removeTeamMember(${memberCount})">Remove</button>
             </div>
@@ -311,6 +337,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Submit Team button
     document.getElementById('submit-team').addEventListener('click', async () => {
+        
+        // --- 1. ADDED PERMISSION CHECK ---
+        if (user.role === 'Volunteer') {
+            alert('You do not have permission to perform this action.');
+            return;
+        }
+        
         const form = document.getElementById('add-team-form');
 
         if (!form.checkValidity()) {
@@ -346,11 +379,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const teamData = {
             team_name: teamName,
             event_id: eventId,
-            participants: members
+            participants: members // This matches your new structure
         };
 
         try {
-            const response = await fetch(`${API_URL}/teams/add_to_event/`, {
+            // Using your new endpoint
+            const response = await fetch(`${API_URL}/teams/add_to_event/`, { 
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -359,8 +393,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to add team');
+                const errorData = await response.json();
+                const errorMessage = parseFastAPIError(errorData, 'Failed to add team');
+                throw new Error(errorMessage);
             }
 
             const result = await response.json();
@@ -390,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // When Add Team modal is opened, set the event ID
     document.getElementById('addTeamModal').addEventListener('show.bs.modal', () => {
+        console.log('hello')
         if (EventsModule.currentEvent) {
             document.getElementById('team-event-id').value = EventsModule.currentEvent.event_id;
         }
@@ -401,4 +437,5 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('team-members-container').innerHTML = '';
         memberCount = 0;
     });
+
 });

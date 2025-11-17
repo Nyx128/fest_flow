@@ -56,7 +56,7 @@ const ParticipantsModule = (function() {
             while (selectElement.options.length > 1) {
                 selectElement.remove(1);
             }
-            console.log(colleges)
+
 
             if (colleges && Array.isArray(colleges)) {
                 colleges.forEach(college => {
