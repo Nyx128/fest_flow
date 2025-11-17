@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = getStoredUser(); // Function from auth.js
 
     if (user && user.name) {
-        welcomeUser.textContent = `Welcome, ${user.name}`;
+        welcomeUser.textContent = `Welcome, ${user.name} (${user.role})`;
     }
 
     if (logoutButton) {

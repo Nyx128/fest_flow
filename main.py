@@ -76,6 +76,8 @@ def validate_user_credentials(
     # If credentials are correct, return the user's data
     return db_user
 
+@app.get("/users/")
+
 
 # --- API Endpoint for fests---
 @app.post("/fests/", response_model=schemas.Fest)

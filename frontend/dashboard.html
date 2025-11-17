@@ -72,12 +72,18 @@
                 <h5>Filters</h5>
                 <form id="participants-filter-form" class="row g-3">
                     <div class="col-md-3">
-                        <label for="p-college" class="form-label">College Name</label>
-                        <input type="text" class="form-control" id="p-college" placeholder="Enter college name">
+                        <label for="p-college" class="form-label">College</label>
+                        <select id="p-college" class="form-select">
+                            <option value="">All Colleges</option>
+                            <!-- Colleges options will be populated by JS -->
+                        </select>
                     </div>
-                    <div class="col-md-2">
-                        <label for="p-club-id" class="form-label">Club ID</label>
-                        <input type="number" class="form-control" id="p-club-id" placeholder="Enter club ID">
+                    <div class="col-md-3">
+                        <label for="p-club-id" class="form-label">Club</label>
+                        <select id="p-club-id" class="form-select">
+                            <option value="">All Clubs</option>
+                            <!-- Clubs options will be populated by JS -->
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <label for="p-gender" class="form-label">Gender</label>
@@ -95,9 +101,12 @@
                         <label for="p-city" class="form-label">City</label>
                         <input type="text" class="form-control" id="p-city" placeholder="Enter city">
                     </div>
-                    <div class="col-md-2">
-                        <label for="p-event-id" class="form-label">Event ID</label>
-                        <input type="number" class="form-control" id="p-event-id" placeholder="Enter event ID">
+                    <div class="col-md-3">
+                        <label for="p-event-id" class="form-label">Event</label>
+                        <select id="p-event-id" class="form-select">
+                            <option value="">All Events</option>
+                            <!-- Event options will be populated by JS -->
+                        </select>
                     </div>
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary">Apply Filters</button>

@@ -6,7 +6,6 @@ const ParticipantsModule = (function() {
     let participantsTable;
 
     function init() {
-        // Initialize DataTable
         participantsTable = new DataTable('#participants-table', {
             paging: true,
             searching: true,
@@ -15,11 +14,13 @@ const ParticipantsModule = (function() {
             pageLength: 25
         });
 
-        // Set up event listeners
         setupEventListeners();
-        
-        // Load initial data
+
         loadParticipants();
+
+        loadEventsDropdown();
+        loadCollegesDropdown();
+        loadClubsDropdown();
     }
 
     function setupEventListeners() {
@@ -36,6 +37,112 @@ const ParticipantsModule = (function() {
             loadParticipants();
         });
     }
+
+    async function loadCollegesDropdown() {
+        const selectElement = document.getElementById('p-college');
+        if (!selectElement) {
+            console.error('College filter dropdown "p-college" not found.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/colleges/query`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const colleges = await response.json();
+
+            while (selectElement.options.length > 1) {
+                selectElement.remove(1);
+            }
+            console.log(colleges)
+
+            if (colleges && Array.isArray(colleges)) {
+                colleges.forEach(college => {
+                    const option = document.createElement('option');
+                    option.value = college.name; 
+                    option.textContent = `${college.name}`;
+                    selectElement.appendChild(option);
+                });
+            }
+
+        } catch (error) {
+            console.error('Error loading colleges dropdown:', error);
+        }
+    }
+
+    async function loadClubsDropdown() {
+        const selectElement = document.getElementById('p-club-id');
+        if (!selectElement) {
+            console.error('Club filter dropdown "p-club-id" not found.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/clubs/query`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const clubs = await response.json();
+
+            while (selectElement.options.length > 1) {
+                selectElement.remove(1);
+            }
+
+            // Populate with fetched clubs
+            if (clubs && Array.isArray(clubs)) {
+                clubs.forEach(club => {
+                    const option = document.createElement('option');
+                    option.value = club.club_id;
+                    option.textContent = `${club.club_name} (ID: ${club.club_id})`;
+                    selectElement.appendChild(option);
+                });
+            }
+
+        } catch (error) {
+            console.error('Error loading clubs dropdown:', error);
+        }
+    }
+
+
+    async function loadEventsDropdown(){
+        const selectElement = document.getElementById('p-event-id');
+        if (!selectElement) {
+            console.error('Event filter dropdown "p-event-id" not found.');
+            return;
+        }
+
+        try {
+            // NOTE: Assuming your endpoint for ALL events is '/events/'
+            // Change this if your API endpoint is different.
+            const response = await fetch(`${API_URL}/events/query/`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const events = await response.json();
+
+            // Clear any existing options (except the first "All Events" one)
+            while (selectElement.options.length > 1) {
+                selectElement.remove(1);
+            }
+
+            // Populate with fetched events
+            if (events && Array.isArray(events)) {
+                events.forEach(event => {
+                    const option = document.createElement('option');
+                    option.value = event.event_id;
+                    option.textContent = `${event.name} (ID: ${event.event_id})`;
+                    selectElement.appendChild(option);
+                });
+            }
+
+        } catch (error) {
+            console.error('Error loading events dropdown:', error);
+        }
+    } 
 
     async function loadParticipants() {
         try {
